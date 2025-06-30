@@ -1,0 +1,152 @@
+/* Fonte e layout base */
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #f5f5f5;
+  color: #2e7d32;
+  margin: 0;
+  padding: 0;
+}
+
+/* Cabeçalho com gradiente verde (sem bordas arredondadas) */
+.header-full {
+  width: 100%;
+  padding: 40px 20px;
+  background: linear-gradient(90deg, #2e7d32, #60ad5e);
+  color: white;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header-full h1 {
+  font-size: 2.8rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Container principal */
+.main-menu {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+/* Grade de cards do menu */
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+/* Cada card clicável */
+.menu-card {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 30px 20px;
+  text-align: center;
+  text-decoration: none;
+  color: #2e7d32;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.menu-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  background-color: #f1f8f4;
+}
+
+/* Ícones dos cards */
+.menu-card i {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  color: #2e7d32;
+}
+
+/* Texto dos cards */
+.menu-card span {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.text-danger {
+  color: #c62828 !important;
+}
+.page-container {
+  background: #fff;
+  padding: 30px 40px;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  margin: auto;
+}
+
+.page-title {
+  background: linear-gradient(90deg, #2e7d32, #60ad5e);
+  color: white;
+  padding: 18px 25px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1.8rem;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.icon-green {
+  color: #a5d6a7; /* tom verde claro para os ícones */
+  font-size: 1.6rem;
+}
+
+.form-box label {
+  font-weight: 600;
+  color: #2e7d32;
+  margin-top: 15px;
+  display: block;
+}
+
+.form-control {
+  border: 2px solid #2e7d32;
+  border-radius: 8px;
+  transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: #60ad5e;
+  box-shadow: 0 0 8px #a5d6a7;
+  outline: none;
+}
+
+.btn-success {
+  background-color: #2e7d32;
+  border-color: #2e7d32;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: background-color 0.3s ease;
+}
+
+.btn-success:hover {
+  background-color: #60ad5e;
+  border-color: #60ad5e;
+}
+
+.btn-secondary {
+  background-color: #a5d6a7;
+  border-color: #a5d6a7;
+  color: #2e7d32;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background-color: #7cb17c;
+  border-color: #7cb17c;
+  color: white;
+}
+.content-box {
+  background-color: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(46, 125, 50, 0.2);
+}

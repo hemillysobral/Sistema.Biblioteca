@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cadastrar Livro</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <link href="style.css" rel="stylesheet" />
+</head>
+<body class="container mt-5">
+  <div class="page-container">
+    <h2 class="page-title">
+      <i class="fas fa-book-medical icon-green"></i> Cadastrar Livro
+    </h2>
+    <form action="/cadastrar-livro" method="post" class="form-box">
+      <label>Título:</label>
+      <input class="form-control" name="titulo" required />
+      <label>Autor:</label>
+      <input class="form-control" name="autor" required />
+      <label>Quantidade:</label>
+      <input type="number" class="form-control" name="quantidade" required min="1" />
+      <button class="btn btn-success mt-3">
+        <i class="fas fa-check"></i> Cadastrar
+      </button>
+    </form>
+    <a href="/" class="btn btn-secondary mt-3">Voltar</a>
+  </div>
+</body>
+</html>
