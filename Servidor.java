@@ -70,75 +70,36 @@ public class Servidor {
         if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) return;
         Map<String, String> dados = lerFormulario(exchange);
 
-        // Verifica se o aluno existe
-        boolean alunoExiste = alunos.stream()
-                                    .anyMatch(a -> a.matricula.equals(dados.get("matricula")));
-        
-        // Verifica se o livro existe e se há quantidade disponível
-        Livro livro = livros.stream()
-                            .filter(l -> l.titulo.equals(dados.get("titulo")))
-                            .findFirst()
-                            .orElse(null);
-
-        if (!alunoExiste) {
-            responder(exchange, "Erro: Aluno não encontrado.");
-            return;
-        }
-        
-        if (livro == null) {
-            responder(exchange, "Erro: Livro não encontrado.");
-            return;
-        }
-        
-        if (livro.quantidade <= 0) {
-            responder(exchange, "Erro: Livro indisponível.");
-            return;
-        }
-
-        try {
+        // Simplificado: Assume que o livro e o aluno existem
+        Livro livro = livros.stream().filter(l -> l.titulo.equals(dados.get("titulo"))).findFirst().orElse(null);
+        if (livro != null && livro.quantidade > 0) {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            Date dtEmp = sdf.parse(dados.get("dataEmprestimo"));
-            Date dtDev = sdf.parse(dados.get("dataDevolucao"));
-            
-            // Registra o empréstimo
-            emprestimos.add(new Emprestimo(dados.get("matricula"), dados.get("titulo"), dtEmp, dtDev, false));
-            livro.quantidade--; // Decrementa a quantidade de livros disponíveis
-            
-            redirecionar(exchange, "/livros-emprestados.html");
-        } catch (Exception e) {
-            responder(exchange, "Erro ao registrar o empréstimo: " + e.getMessage());
+            try {
+                Date dtEmp = sdf.parse(dados.get("dataEmprestimo"));
+                Date dtDev = sdf.parse(dados.get("dataDevolucao"));
+                emprestimos.add(new Emprestimo(dados.get("matricula"), dados.get("titulo"), dtEmp, dtDev, false));
+                livro.quantidade--; // Diminui a quantidade de livros
+                redirecionar(exchange, "/livros-emprestados.html");
+            } catch (Exception e) {
+                responder(exchange, "Erro ao registrar empréstimo: " + e.getMessage());
+            }
+        } else {
+            responder(exchange, "Erro: Livro não disponível.");
         }
     }
 
     static void registrarDevolucao(HttpExchange exchange) throws IOException {
         if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) return;
-        
-        // Lê os dados do formulário
         Map<String, String> dados = lerFormulario(exchange);
 
-        boolean devolvidoComSucesso = false;
-        
-        // Percorre todos os empréstimos para encontrar aquele que corresponde ao aluno e livro
         for (Emprestimo e : emprestimos) {
             if (!e.devolvido && e.matricula.equals(dados.get("matricula")) && e.titulo.equals(dados.get("titulo"))) {
-                e.devolvido = true; // Marca como devolvido
-                // Aumenta a quantidade do livro
-                livros.stream()
-                    .filter(l -> l.titulo.equals(e.titulo))
-                    .findFirst()
-                    .ifPresent(l -> l.quantidade++);
-                devolvidoComSucesso = true;
+                e.devolvido = true;
+                livros.stream().filter(l -> l.titulo.equals(e.titulo))
+                      .findFirst().ifPresent(l -> l.quantidade++);
                 break;
             }
         }
-        
-        // Se não foi possível encontrar o empréstimo correspondente
-        if (!devolvidoComSucesso) {
-            responder(exchange, "Erro: Empréstimo não encontrado para o aluno ou livro fornecido.");
-            return;
-        }
-        
-        // Redireciona para a lista de livros emprestados após a devolução
         redirecionar(exchange, "/livros-emprestados.html");
     }
 
@@ -162,7 +123,7 @@ public class Servidor {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         StringBuilder html = new StringBuilder(cabecalhoHtml("Livros Emprestados", "fa-book-reader"));
         html.append("<table class='table table-bordered'><tr><th>Matrícula</th><th>Livro</th><th>Empr.</th><th>Devolução</th></tr>");
-        emprestimos.stream().filter(e -> !e.devolvido).forEach(e -> 
+        emprestimos.stream().filter(e -> !e.devolvido).forEach(e ->
             html.append("<tr><td>").append(e.matricula).append("</td><td>").append(e.titulo)
                 .append("</td><td>").append(sdf.format(e.dataEmprestimo))
                 .append("</td><td>").append(sdf.format(e.dataDevolucao)).append("</td></tr>")
@@ -190,47 +151,44 @@ public class Servidor {
     // Métodos auxiliares
 
     static Map<String, String> lerFormulario(HttpExchange exchange) throws IOException {
-        InputStreamReader isr = new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8);
-        BufferedReader br = new BufferedReader(isr);
-        StringBuilder dados = new StringBuilder();
-        String linha;
-        while ((linha = br.readLine()) != null) {
-            dados.append(linha);
-        }
-        return parseQueryString(dados.toString());
-    }
-
-    static Map<String, String> parseQueryString(String query) {
-        Map<String, String> params = new HashMap<>();
-        for (String p : query.split("&")) {
-            String[] keyValue = p.split("=");
-            if (keyValue.length == 2) {
-                params.put(keyValue[0], URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8));
+        BufferedReader br = new BufferedReader(new InputStreamReader(exchange.getRequestBody(), StandardCharsets.UTF_8));
+        String linha = br.readLine();
+        Map<String, String> map = new HashMap<>();
+        if (linha != null) {
+            for (String par : linha.split("&")) {
+                String[] p = par.split("=");
+                if (p.length == 2) {
+                    map.put(URLDecoder.decode(p[0], StandardCharsets.UTF_8), URLDecoder.decode(p[1], StandardCharsets.UTF_8));
+                }
             }
         }
-        return params;
+        return map;
     }
 
-    static void responder(HttpExchange exchange, String response) throws IOException {
-        exchange.getResponseHeaders().set("Content-Type", "text/html; charset=UTF-8");
-        exchange.sendResponseHeaders(200, response.getBytes().length);
-        try (OutputStream os = exchange.getResponseBody()) {
-            os.write(response.getBytes());
-        }
-    }
-
-    static void redirecionar(HttpExchange exchange, String location) throws IOException {
-        exchange.getResponseHeaders().set("Location", location);
+    static void redirecionar(HttpExchange exchange, String destino) throws IOException {
+        exchange.getResponseHeaders().set("Location", destino);
         exchange.sendResponseHeaders(302, -1);
+        exchange.close();
+    }
+
+    static void responder(HttpExchange exchange, String html) throws IOException {
+        byte[] b = html.getBytes(StandardCharsets.UTF_8);
+        exchange.getResponseHeaders().set("Content-Type", "text/html; charset=UTF-8");
+        exchange.sendResponseHeaders(200, b.length);
+        try (OutputStream os = exchange.getResponseBody()) {
+            os.write(b);
+        }
     }
 
     static String cabecalhoHtml(String titulo, String icone) {
-        return "<html><head><meta charset='UTF-8'><title>" + titulo + "</title><link rel='stylesheet' href='/style.css'></head><body>"
-            + "<h1><i class='fa " + icone + "'></i> " + titulo + "</h1>";
+        return "<!DOCTYPE html><html lang='pt-br'><head><meta charset='UTF-8'><title>" + titulo +
+               "</title><link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css' rel='stylesheet'>" +
+               "<link href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css' rel='stylesheet'>" +
+               "<link href='/style.css' rel='stylesheet'></head><body class='container mt-5'><h2 class='mb-4'><i class='fas " + icone + "'></i> " + titulo + "</h2>";
     }
 
     static String botaoVoltar() {
-        return "<br><a href='/index.html' class='btn btn-primary'>Voltar</a>";
+        return "<a href='/' class='btn btn-secondary mt-3'><i class='fas fa-arrow-left'></i> Voltar</a>";
     }
 
     static String rodapeHtml() {
@@ -239,35 +197,23 @@ public class Servidor {
 
     static class Aluno {
         String nome, matricula, turma;
-
         Aluno(String nome, String matricula, String turma) {
-            this.nome = nome;
-            this.matricula = matricula;
-            this.turma = turma;
+            this.nome = nome; this.matricula = matricula; this.turma = turma;
         }
     }
 
     static class Livro {
-        String titulo, autor;
-        int quantidade;
-
+        String titulo, autor; int quantidade;
         Livro(String titulo, String autor, int quantidade) {
-            this.titulo = titulo;
-            this.autor = autor;
-            this.quantidade = quantidade;
+            this.titulo = titulo; this.autor = autor; this.quantidade = quantidade;
         }
     }
 
     static class Emprestimo {
-        String matricula, titulo;
-        Date dataEmprestimo, dataDevolucao;
-        boolean devolvido;
-
+        String matricula, titulo; Date dataEmprestimo, dataDevolucao; boolean devolvido;
         Emprestimo(String matricula, String titulo, Date dataEmprestimo, Date dataDevolucao, boolean devolvido) {
-            this.matricula = matricula;
-            this.titulo = titulo;
-            this.dataEmprestimo = dataEmprestimo;
-            this.dataDevolucao = dataDevolucao;
+            this.matricula = matricula; this.titulo = titulo;
+            this.dataEmprestimo = dataEmprestimo; this.dataDevolucao = dataDevolucao;
             this.devolvido = devolvido;
         }
     }
