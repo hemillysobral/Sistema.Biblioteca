@@ -31,9 +31,6 @@ public class Servidor {
         server.createContext("/emprestar-livro", Servidor::registrarEmprestimo);
         server.createContext("/devolver-livro", Servidor::registrarDevolucao);
 
-        // Serve arquivos estáticos (CSS, JS, Imagens)
-        server.createContext("/static", Servidor::servirArquivosEstaticos);
-
         server.setExecutor(null);
         System.out.println("Servidor rodando em http://localhost:8080");
         server.start();
@@ -148,7 +145,7 @@ public class Servidor {
         <head>
             <meta charset="UTF-8">
             <title>%s</title>
-            <link href="/static/css/estilo.css" rel="stylesheet"> <!-- Alterado para o caminho correto -->
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
             <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
         </head>
         <body class="container mt-5">
@@ -197,27 +194,6 @@ public class Servidor {
         exchange.getResponseHeaders().set("Location", url);
         exchange.sendResponseHeaders(302, -1);
         exchange.close();
-    }
-
-    static void servirArquivosEstaticos(HttpExchange exchange) throws IOException {
-        // Obtém o caminho do arquivo requisitado
-        String requestedFile = exchange.getRequestURI().getPath().replace("/static", "");
-
-        // Define o diretório onde seus arquivos estáticos estão armazenados
-        Path caminhoArquivo = Paths.get("static", requestedFile);
-
-        // Verifica se o arquivo existe
-        if (Files.exists(caminhoArquivo)) {
-            String tipoArquivo = Files.probeContentType(caminhoArquivo);
-            exchange.getResponseHeaders().set("Content-Type", tipoArquivo);
-            byte[] bytes = Files.readAllBytes(caminhoArquivo);
-            exchange.sendResponseHeaders(200, bytes.length);
-            OutputStream os = exchange.getResponseBody();
-            os.write(bytes);
-            os.close();
-        } else {
-            exchange.sendResponseHeaders(404, -1);
-        }
     }
 
     static class Aluno {
